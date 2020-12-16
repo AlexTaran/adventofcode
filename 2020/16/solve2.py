@@ -45,8 +45,26 @@ def main():
       for name, vals in fields.items():
         if all([v in vals for v in fieldvalues[i]]):
           candidatefields[i].add(name)
-    for f in candidatefields:
-      print(f)
+    candidate2position = defaultdict(set)
+    for i, f in enumerate(candidatefields):
+      for name in f: candidate2position[name].add(i)
+    while True:
+      changed = False
+      for c, p in candidate2position.items():
+        if len(p) == 1:
+          found = list(p)[0]
+          fc = c
+          for c1, p1 in candidate2position.items():
+            if c1 != fc and found in p1:
+              candidate2position[c1].remove(found)
+              changed = True
+      if not changed:
+        break
+    # Luckily for our input this heuristics is enough :)
+    for k, v in candidate2position.items():
+      if not k.startswith('departure '): continue
+      res *= mt[list(v)[0]]
+    print(res)
 
 
 if __name__=="__main__":
