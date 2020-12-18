@@ -9,32 +9,41 @@ def mbint(i):
 
 def calc(s):
   s = [mbint(s) for s in list(s.replace(' ', ''))]
-  # Fast programming!
-  while len(s) != 1:
-    done = False
-    for i in range(2, len(s)):
-      if type(s[i-2]) == int and s[i-1] == '+' and type(s[i]) == int:
-        s = s[:i-2] + [s[i-2] + s[i]] + s[i+1:]
-        done = True
+
+  def calcProd(start):
+    res = 1
+    while start < len(s) and s[start] != ')':
+      sm, nstart = calcSum(start)
+      res *= sm
+      if nstart < len(s) and s[nstart] == '*':
+        start = nstart + 1
+      else:
+        start = nstart
         break
-    if done: continue
-    for i in range(2, len(s)):
-      if type(s[i-2]) == int and s[i-1] == '*' and type(s[i]) == int:
-        s = s[:i-2] + [s[i-2] * s[i]] + s[i+1:]
-        done = True
+    return (res, start)
+    
+  def calcSum(start):
+    res = 0
+    while start < len(s) and s[start] != ')':
+      sm, nstart = calcElem(start)
+      res += sm
+      if nstart < len(s) and s[nstart] == '+':
+        start = nstart + 1
+      else:
+        start = nstart
         break
-    if done: continue
-    for i in range(2, len(s)):
-      if s[i-2] == '(' and type(s[i-1]) == int and s[i] == ')':
-        s = s[:i-2] + [s[i-1]] + s[i+1:]
-        done = True
-        break
-    if done: continue
-    break
-  return s[0]
+    return (res, start)
+
+  def calcElem(start):
+    if type(s[start]) == int:
+      return (s[start], start + 1)
+    prod, fin = calcProd(start + 1) # skip '('
+    return (prod, fin + 1) # skip ')'
+
+  return calcProd(0)[0]
 
 def main():
-    lines = [l.strip() for l in open('input1.txt')]
+    lines = [l.strip() for l in open('input.txt')]
     print(sum([calc(s) for s in lines]))
 
 if __name__=="__main__":
