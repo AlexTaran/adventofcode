@@ -1,5 +1,4 @@
 use std::io;
-use std::cmp;
 use std::collections::HashSet;
 use std::collections::HashMap;
 use rand::seq::SliceRandom;
@@ -10,18 +9,6 @@ struct V3 {
     x: i32,
     y: i32,
     z: i32,
-}
-
-fn add(a: &V3, b: &V3) -> V3 {
-    return V3 {x: a.x+b.x, y: a.y+b.y, z: a.z+b.z};
-}
-
-fn sub(a: &V3, b: &V3) -> V3 {
-    return V3 {x: a.x-b.x, y: a.y-b.y, z: a.z-b.z};
-}
-
-fn clone(v: &V3) -> V3 {
-    return V3 {x: v.x, y: v.y, z: v.z};
 }
 
 #[derive(Hash, Eq, PartialEq, Clone, Debug, Ord, PartialOrd)]
@@ -137,86 +124,8 @@ fn try_merge(ri: &Cuboid, rj: &Cuboid) -> Option<Cuboid> {
   return None;
 }
 
-fn compact2(field: &Vec<Cuboid>) -> Vec<Cuboid> {
-    let mut res = HashSet::new();
-    for f in field.iter() {
-        res.insert(f.clone());
-    }
-    let mut coords:HashMap<i32, HashSet<Cuboid>> = HashMap::new();
-    for c in res.iter() {
-        for crd in cuboid_coords(c).iter() {
-            if !coords.contains_key(crd) {
-                coords.insert(*crd, HashSet::new());
-            }
-            coords.get_mut(crd).unwrap().insert(c.clone());
-        }
-    }
-    let def = HashSet::new();
-    loop {
-        let mut changed = false;
-        for c in res.iter() {
-            for crd in [c.mx.x, c.mx.y, c.mx.z].iter() {
-                let cands = coords.get(crd).unwrap_or(&def);
-                for cand in cands.iter() {
-                    let mrg = try_merge(c, cand);
-                    if mrg != None {
-                        // remove c and cand, add mrg
-                        for cc in cuboid_coords(c) {
-                            //
-                        }
-                        changed = true;
-                        break;
-                    }
-                }
-                if changed {
-                    break;
-                }
-            }
-            if changed {
-                break;
-            }
-        }
-        /*for i in 0..res.len() {
-            for crd in [res[i].mx.x, res[i].mx.y, res[i].mx.z].iter() {
-                let def = Vec::new();
-                let cands = coords.get(crd).unwrap_or(&def);
-                for cand in cands.iter() {
-                    let mrg = try_merge(&res[i], &res[*cand]);
-                    if mrg != None {
-                        let mut f = Vec::new();
-                        for k in 0..res.len() {
-                            if k != i && k != *cand {
-                                f.push(res[k].clone());
-                            }
-                        }
-                        f.push(mrg.unwrap());
-                        res = f;
-                        changed = true;
-                        break;
-                    }
-                }
-                if changed {
-                    break;
-                }
-            }
-            if changed {
-                break;
-            }
-        }*/
-        if !changed {
-            break;
-        }
-    }
-    return res.into_iter().collect();
-}
-
-/*fn shuffle(f: &Vec<Cuboid>, inp: u32) -> Vec<Cuboid> {
-    
-}*/
-
 fn compact(field: &Vec<Cuboid>) -> Vec<Cuboid> {
     let mut rng = thread_rng();
-    //let mut rng = StdRng::new().unwrap();
     let mut res = field.clone();
     loop {
         res.shuffle(&mut rng);
@@ -258,74 +167,6 @@ fn compact(field: &Vec<Cuboid>) -> Vec<Cuboid> {
                 break;
             }
         }
-        if changed {
-            continue;
-        }
-
-        /*for i in 0..res.len() {
-            for j in 0..res.len() {
-                if i == j {
-                    continue;
-                }
-                let ri = &res[i];
-                let rj = &res[j];
-                // X merge
-                if ri.mx.x == rj.mn.x && ri.mn.y == rj.mn.y && ri.mx.y == rj.mx.y && ri.mn.z == rj.mn.z && ri.mx.z == rj.mx.z {
-                    let mut f = Vec::new();
-                    for k in 0..res.len() {
-                        if k != i && k != j {
-                            f.push(res[k].clone());
-                        }
-                    }
-                    f.push(Cuboid {mn: V3 {x: ri.mn.x, y: ri.mn.y, z: ri.mn.z}, mx: V3 {x: rj.mx.x, y: rj.mx.y, z: rj.mx.z}});
-                    res = f;
-                    changed = true;
-                    break;
-                }
-                // Y Merge
-                if ri.mn.x == rj.mn.x && ri.mx.x == rj.mx.x && ri.mx.y == rj.mn.y && ri.mn.z == rj.mn.z && ri.mx.z == rj.mx.z {
-                    let mut f = Vec::new();
-                    for k in 0..res.len() {
-                        if k != i && k != j {
-                            f.push(res[k].clone());
-                        }
-                    }
-                    f.push(Cuboid {mn: V3 {x: ri.mn.x, y: ri.mn.y, z: ri.mn.z}, mx: V3 {x: rj.mx.x, y: rj.mx.y, z: rj.mx.z}});
-                    res = f;
-                    changed = true;
-                    break;
-                }
-                // Z merge
-                if ri.mn.x == rj.mn.x && ri.mx.x == rj.mx.x && ri.mn.y == rj.mn.y && ri.mx.y == rj.mx.y && ri.mx.z == rj.mn.z {
-                    let mut f = Vec::new();
-                    for k in 0..res.len() {
-                        if k != i && k != j {
-                            f.push(res[k].clone());
-                        }
-                    }
-                    f.push(Cuboid {mn: V3 {x: ri.mn.x, y: ri.mn.y, z: ri.mn.z}, mx: V3 {x: rj.mx.x, y: rj.mx.y, z: rj.mx.z}});
-                    res = f;
-                    changed = true;
-                    break;
-                }
-                // Inners
-                /*if isinside(ri, rj) {
-                    let mut f = Vec::new();
-                    for k in 0..res.len() {
-                        if k != i && k != j {
-                            f.push(res[k].clone());
-                        }
-                    }
-                    f.push(ri.clone());
-                    res = f;
-                    changed = true;
-                    break;
-                }*/
-            }
-            if changed {
-                break;
-            }
-        }*/
         if !changed {
             break;
         }
@@ -353,7 +194,6 @@ fn turnon(field: &Vec<Cuboid>, c: &Cuboid) -> Vec<Cuboid> {
 }
 
 fn turnoff(field: &Vec<Cuboid>, c: &Cuboid) -> Vec<Cuboid> {
-    println!("turnoff");
     let mut sfld = HashSet::new();
     let cc = corners(c);
     for b in field.iter() {
@@ -410,8 +250,6 @@ fn main() {
     let mut field: Vec<Cuboid> = Vec::new(); 
     for i in 0..ops.len() {
         field = compact(&field);
-        field.sort();
-        println!("cnt = {} fld = {} vol = {}", i, field.len(), calcvol(&field));
 
         let mut nextoffs = Vec::new();
         for j in (i+1)..ops.len() {
