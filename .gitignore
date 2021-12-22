@@ -5,3 +5,4 @@ input?.txt
 *.swo
 solve
 solve2
+target/

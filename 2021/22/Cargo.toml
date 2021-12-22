@@ -1,0 +1,11 @@
+[package]
+name = "solve2"
+version = "1.0.0"
+edition = "2018"
+
+[dependencies]
+rand = "0.8.4"
+
+[[bin]]
+name = "solve2"
+path = "solve2.rs"
