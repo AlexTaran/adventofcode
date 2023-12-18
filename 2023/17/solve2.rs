@@ -30,8 +30,8 @@ fn main() {
     }
     let w = table[0].len();
     let h = table.len();
-    let mut visited:Vec<Vec<[[bool; 4]; 3]>> = vec![vec![[[false; 4]; 3];w];h];
-    let mut labels:Vec<Vec<[[u32; 4]; 3]>> = vec![vec![[[u32::MAX; 4]; 3];w];h];
+    let mut visited:Vec<Vec<[[bool; 4]; 10]>> = vec![vec![[[false; 4]; 10];w];h];
+    let mut labels:Vec<Vec<[[u32; 4]; 10]>> = vec![vec![[[u32::MAX; 4]; 10];w];h];
     let isvalid = |v:&V2|v.x >= 0 && v.y >= 0 && v.x < w as i32 && v.y < h as i32;
 
     // Initialization.
@@ -41,7 +41,7 @@ fn main() {
     let mut mp:BTreeSet<(u32, usize, usize, usize, usize)> = BTreeSet::new();
     for y in 0..h {
         for x in 0..w {
-            for i in 0..3 {
+            for i in 0..10 {
                 for j in 0..4 {
                     mp.insert( (labels[y][x][i][j], y, x, i, j) );
                 }
@@ -52,7 +52,7 @@ fn main() {
     loop {
         // Check if answer is ready.
         let mut ready = true;
-        for i in 0..3 {
+        for i in 0..10 {
             for j in 0..4 {
                 if !visited[h-1][w-1][i][j] {
                     ready = false;
@@ -76,25 +76,27 @@ fn main() {
         let pos_turnl = add(&pos, &DLT[dir_turnl]);
         let pos_turnr = add(&pos, &DLT[dir_turnr]);
         
-        if isvalid(&pos_turnl) && !visited[pos_turnl.y as usize][pos_turnl.x as usize][0][dir_turnl] {
-            let candlabel = curlabel + table[pos_turnl.y as usize][pos_turnl.x as usize];
-            let neiblabel = labels[pos_turnl.y as usize][pos_turnl.x as usize][0][dir_turnl];
-            if candlabel < neiblabel {
-                mp.remove(&(neiblabel, pos_turnl.y as usize, pos_turnl.x as usize, 0, dir_turnl));
-                labels[pos_turnl.y as usize][pos_turnl.x as usize][0][dir_turnl] = candlabel;
-                mp.insert((candlabel, pos_turnl.y as usize, pos_turnl.x as usize, 0, dir_turnl));
+        if coord.2 >= 3 {
+            if isvalid(&pos_turnl) && !visited[pos_turnl.y as usize][pos_turnl.x as usize][0][dir_turnl] {
+                let candlabel = curlabel + table[pos_turnl.y as usize][pos_turnl.x as usize];
+                let neiblabel = labels[pos_turnl.y as usize][pos_turnl.x as usize][0][dir_turnl];
+                if candlabel < neiblabel {
+                    mp.remove(&(neiblabel, pos_turnl.y as usize, pos_turnl.x as usize, 0, dir_turnl));
+                    labels[pos_turnl.y as usize][pos_turnl.x as usize][0][dir_turnl] = candlabel;
+                    mp.insert((candlabel, pos_turnl.y as usize, pos_turnl.x as usize, 0, dir_turnl));
+                }
+            }
+            if isvalid(&pos_turnr) && !visited[pos_turnr.y as usize][pos_turnr.x as usize][0][dir_turnr] {
+                let candlabel = curlabel + table[pos_turnr.y as usize][pos_turnr.x as usize];
+                let neiblabel = labels[pos_turnr.y as usize][pos_turnr.x as usize][0][dir_turnr];
+                if candlabel < neiblabel {
+                    mp.remove(&(neiblabel, pos_turnr.y as usize, pos_turnr.x as usize, 0, dir_turnr));
+                    labels[pos_turnr.y as usize][pos_turnr.x as usize][0][dir_turnr] = candlabel;
+                    mp.insert((candlabel, pos_turnr.y as usize, pos_turnr.x as usize, 0, dir_turnr));
+                }
             }
         }
-        if isvalid(&pos_turnr) && !visited[pos_turnr.y as usize][pos_turnr.x as usize][0][dir_turnr] {
-            let candlabel = curlabel + table[pos_turnr.y as usize][pos_turnr.x as usize];
-            let neiblabel = labels[pos_turnr.y as usize][pos_turnr.x as usize][0][dir_turnr];
-            if candlabel < neiblabel {
-                mp.remove(&(neiblabel, pos_turnr.y as usize, pos_turnr.x as usize, 0, dir_turnr));
-                labels[pos_turnr.y as usize][pos_turnr.x as usize][0][dir_turnr] = candlabel;
-                mp.insert((candlabel, pos_turnr.y as usize, pos_turnr.x as usize, 0, dir_turnr));
-            }
-        }
-        if coord.2 < 2 { // Can go forward.
+        if coord.2 < 9 { // Can go forward.
             let pos_fwd = add(&pos, &DLT[coord.3]);
             if isvalid(&pos_fwd) && !visited[pos_fwd.y as usize][pos_fwd.x as usize][coord.2 + 1][coord.3] {
                 let candlabel = curlabel + table[pos_fwd.y as usize][pos_fwd.x as usize];
@@ -111,7 +113,7 @@ fn main() {
     }
 
     let mut ans = u32::MAX;
-    for i in 0..3 {
+    for i in 3..10 {
         for j in 0..4 {
             if labels[h-1][w-1][i][j] < ans {
                 ans = labels[h-1][w-1][i][j];
